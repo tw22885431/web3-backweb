@@ -81,7 +81,7 @@
 <script>
 </script>
 
-<style>
+<style scoped src="~/assets/css/style.css">
 
 
 

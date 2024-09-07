@@ -32,13 +32,6 @@ export default defineNuxtConfig({
 
               },
 
-              {
-
-                href:"~/assest/css/style.css",
-
-                rel:"stylesheet",
-
-              },
 
           ],
 
