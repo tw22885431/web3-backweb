@@ -55,6 +55,9 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'back-layout'
+})
 function resetForm() {
   const form = document.querySelector('form');
   if (form) {
