@@ -89,9 +89,6 @@ const _inlineRuntimeConfig = {
       "/__nuxt_error": {
         "cache": false
       },
-      "/confirm": {
-        "ssr": false
-      },
       "/_nuxt/builds/meta/**": {
         "headers": {
           "cache-control": "public, max-age=31536000, immutable"
@@ -108,7 +105,7 @@ const _inlineRuntimeConfig = {
     "supabase": {
       "url": "https://cpykqbxdilzbhcehyoih.supabase.co",
       "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNweWtxYnhkaWx6YmhjZWh5b2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU3MTAzMzQsImV4cCI6MjA0MTI4NjMzNH0.fxkq6eFkJdytbrQuwrWxUmNm5G2I7CT9VDzem6RIE1k",
-      "redirect": true,
+      "redirect": false,
       "redirectOptions": {
         "login": "/login",
         "callback": "/confirm",

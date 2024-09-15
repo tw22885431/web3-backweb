@@ -10,7 +10,6 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@nuxtjs/composition-api": "^0.34.0",
     "@nuxtjs/supabase": "^1.4.0",
     "nuxt": "^3.13.1",
     "vue": "latest"

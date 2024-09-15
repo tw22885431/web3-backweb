@@ -42,4 +42,9 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   compatibilityDate: "2024-08-29",
   modules: ["@nuxtjs/supabase"],
+   supabase: {
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_KEY,
+	redirect: false,
+  }
 });
