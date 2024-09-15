@@ -1,8 +1,4 @@
-<script setup la
-  components: { sidebar },ng="ts">
-import sidebar from '../components/sidebar.vue';
-
-
+<script setup lang="ts">
 
 </script>
 
