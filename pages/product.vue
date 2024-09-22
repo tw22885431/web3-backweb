@@ -20,11 +20,11 @@
 
         <div class="mb-3">
           <label for="category" class="form-label">類別</label>
-          <select class="form-select" id="category" v-model="category" required>
+          <select class="form-select" id="category" v-model="categoryId" required>
             <option selected disabled>選擇產品類別</option>
-            <option value="1">類別1</option>
-            <option value="2">類別2</option>
-            <option value="3">類別3</option>
+            <option v-for="category in categories" :key="category.id" :value="category.id">
+              {{ category.name }}
+            </option>
           </select>
         </div>
 
@@ -56,173 +56,101 @@
                 <input type="number" class="form-control" v-model="spec.quantity" placeholder="輸入商品數量" required min="1">
               </td>
               <td>
-                <input type="file" class="form-control" accept="image/*" @change="(event) => previewSpecImage(event, index)" />
+                <input type="file" class="form-control" accept="image/*" @change="(event) => handleFileChange(event, index)">
               </td>
               <td>
-                <button type="button" class="btn btn-danger btn-sm" @click="removeSpecification(index)">刪除</button>
+                <button type="button" class="btn btn-danger" @click="removeSpecification(index)">刪除</button>
               </td>
             </tr>
           </tbody>
         </table>
         <button type="button" class="btn btn-secondary" @click="addSpecification">新增規格</button>
-
-        <h2>商品圖片</h2>
-        <div class="mb-3">
-          <label class="form-label">1:1比例圖片 (最多9張)</label>
-          <input type="file" class="form-control" accept="image/*" multiple @change="previewImages" />
-          <small class="form-text text-muted">行片會用於行頁、尋結頁、每日新現頁。</small>
-          <div class="image-preview d-flex flex-wrap mt-2" v-if="imagePreviews.length">
-            <div v-for="(image, index) in imagePreviews" :key="index" class="image-preview-item">
-              <img :src="image" alt="預覽圖片" />
-            </div>
-          </div>
-        </div>
-
-        <div class="d-flex justify-content-between">
-          <button type="submit" class="btn btn-primary" :disabled="!isFormValid">送出</button>
-          <button type="button" class="btn btn-outline-secondary" @click="showAddProductForm = false">返回商品列表</button>
-        </div>
+        <button type="submit" class="btn btn-success">提交</button>
       </form>
-    </div>
-
-    <div v-else>
-      <h2>當前商品列表</h2>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>產品名稱</th>
-            <th>GTIN</th>
-            <th>類別</th>
-            <th>規格</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(product, index) in products" :key="index">
-            <td>{{ product.name }}</td>
-            <td>{{ product.gtin }}</td>
-            <td>{{ product.category }}</td>
-            <td>
-              <ul>
-                <li v-for="(spec, specIndex) in product.specifications" :key="specIndex">
-                  {{ spec.name }} - 價格: {{ spec.price }} - 數量: {{ spec.quantity }}
-                </li>
-              </ul>
-            </td>
-            <td>
-              <button class="btn btn-warning btn-sm" @click="editProduct(index)">修改</button>
-              <button class="btn btn-danger btn-sm" @click="deleteProduct(index)">刪除</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   </main>
 </template>
 
-<script setup lang="ts">
-definePageMeta({
-  layout: 'back-layout'
-})
-import { ref, computed } from 'vue';
+<script>
+const supabase = useSupabaseClient();
 
-const imagePreviews = ref<string[]>([]);
-const showAddProductForm = ref(false);
-const productName = ref('');
-const gtin = ref('');
-const category = ref('');
-const description = ref('');
-const specifications = ref([{ name: '', price: 0, quantity: 1, image: '' }]); // 存儲規格
-const products = ref<any[]>([]); // 存儲商品列表
+export default {
+  definePageMeta() {
+    return {
+      layout: 'back-layout'
+    };
+  },
+  data() {
+    return {
+      showAddProductForm: false,
+      productName: '',
+      gtin: '',
+      categoryId: null,
+      description: '',
+      specifications: [{ name: '', price: null, quantity: null }],
+      categories: [] // 用來儲存類別資料
+    };
+  },
+  methods: {
+    async fetchCategories() {
+      let { data: categories, error } = await supabase
+			.from('categories').select('*');
 
-const isFormValid = computed(() => {
-  return productName.value && gtin.value && category.value && description.value && specifications.every(spec => spec.name && spec.price >= 0 && spec.quantity > 0);
-});
 
-function addSpecification() {
-  specifications.value.push({ name: '', price: 0, quantity: 1, image: '' });
-}
+      if (error) {
+        console.error('Error fetching categories:', error);
+      } else {
+        this.categories = data;
+      }
+    },
+    async submitForm() {
+      const { data, error } = await supabase
+        .from('products')
+        .insert([
+          {
+            name: this.productName,
+            gtin: this.gtin,
+            category_id: this.categoryId,
+            description: this.description,
+            specifications: this.specifications,
+            images: [] // 可以根據需要添加圖片資料
+          }
+        ]).select();
 
-function removeSpecification(index: number) {
-  specifications.value.splice(index, 1);
-}
-
-function previewSpecImage(event: Event, index: number) {
-  const files = (event.target as HTMLInputElement).files;
-  if (files && files.length > 0) {
-    const imageUrl = URL.createObjectURL(files[0]);
-    specifications.value[index].image = imageUrl; // 保存圖片的URL
+      if (error) {
+        console.error('Error inserting product:', error);
+      } else {
+        console.log('Product inserted:', data);
+        // 清空表單或進行其他操作
+        this.resetForm();
+      }
+    },
+    handleFileChange(event, index) {
+      // 處理檔案變更的邏輯
+      const file = event.target.files[0];
+      // 可以在這裡進行上傳或其他處理
+    },
+    removeSpecification(index) {
+      this.specifications.splice(index, 1);
+    },
+    addSpecification() {
+      this.specifications.push({ name: '', price: null, quantity: null });
+    },
+    resetForm() {
+      this.productName = '';
+      this.gtin = '';
+      this.categoryId = null;
+      this.description = '';
+      this.specifications = [{ name: '', price: null, quantity: null }];
+      this.showAddProductForm = false;
+    }
+  },
+  mounted() {
+    this.fetchCategories();
   }
-}
-
-function previewImages(event: Event) {
-  const files = (event.target as HTMLInputElement).files;
-  if (files) {
-    imagePreviews.value = Array.from(files).map(file => URL.createObjectURL(file));
-  }
-}
-
-function submitForm() {
-  // 檢查是否有輸入
-  if (!isFormValid.value) {
-    return; // 若無效，則不提交
-  }
-
-  // 添加新商品到列表
-  products.value.push({
-    name: productName.value,
-    gtin: gtin.value,
-    category: category.value,
-    description: description.value,
-    specifications: specifications.value,
-  });
-  
-  // 提交後返回商品列表
-  showAddProductForm.value = false;
-  resetForm();
-}
-
-function editProduct(index: number) {
-  // 編輯商品邏輯（可以根據需要實現）
-  alert(`編輯商品: ${products.value[index].name}`);
-}
-
-function deleteProduct(index: number) {
-  // 刪除商品
-  products.value.splice(index, 1);
-}
-
-function resetForm() {
-  productName.value = '';
-  gtin.value = '';
-  category.value = '';
-  description.value = '';
-  specifications.value = [{ name: '', price: 0, quantity: 1, image: '' }];
-  imagePreviews.value = [];
-}
+};
 </script>
 
 <style scoped>
-.image-preview {
-  display: flex;
-  flex-wrap: wrap;
-}
-.image-preview-item {
-  width: 100px; /* 調整為所需的縮圖大小 */
-  height: 100px; /* 確保為正方形 */
-  margin: 5px;
-  overflow: hidden;
-}
-.image-preview-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* 確保圖片覆蓋整個區域 */
-}
-.table th, .table td {
-  vertical-align: middle;
-}
-.btn-primary:disabled {
-  background-color: #ccc;
-  border-color: #ccc;
-}
+/* 您可以在這裡添加樣式 */
 </style>

@@ -56,23 +56,49 @@
 <script setup lang="ts">
 definePageMeta({
   layout: 'back-layout'
-})
+});
 import { ref, onMounted } from 'vue';
 import { Chart } from 'chart.js';
 
-const orders = ref([
-  { id: '1001', customerName: '張三', status: '已發貨', amount: 150.00, date: '2024-09-01' },
-  { id: '1002', customerName: '李四', status: '待發貨', amount: 200.00, date: '2024-09-02' },
-  { id: '1003', customerName: '王五', status: '已完成', amount: 250.00, date: '2024-09-03' },
-  // 可根據需要添加更多訂單數據
-]);
+// 使用 useSupabaseClient() 獲取 Supabase 客戶端
+const supabase = useSupabaseClient();
 
-const updateOrder = (order) => {
-  // 在這裡可以添加更新訂單狀態的邏輯，例如發送請求到後端
-  console.log(`訂單 ${order.id} 的狀態已更新為 ${order.status}`);
+const orders = ref([]);
+
+const fetchOrders = async () => {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*');
+
+  if (error) {
+    console.error('Error fetching orders:', error);
+  } else {
+    orders.value = data.map(order => ({
+      id: order.id,
+      customerName: order.customer_name, // 假設有 customer_name 字段
+      status: order.status,
+      amount: order.total_amount,
+      date: order.created_at.split('T')[0] // 格式化日期
+    }));
+  }
+};
+
+const updateOrder = async (order) => {
+  const { error } = await supabase
+    .from('orders')
+    .update({ status: order.status })
+    .eq('id', order.id);
+
+  if (error) {
+    console.error(`Error updating order ${order.id}:`, error);
+  } else {
+    console.log(`訂單 ${order.id} 的狀態已更新為 ${order.status}`);
+  }
 };
 
 onMounted(() => {
+  fetchOrders();
+
   const ctx = document.getElementById('orderChart').getContext('2d');
   new Chart(ctx, {
     type: 'line',
