@@ -58,7 +58,8 @@
 <script setup lang="ts">
 // 添加頁面元數據
 definePageMeta({
-  layout: 'back-layout'
+  layout: 'back-layout',
+  middleware: 'auth',
 });
 import { ref, onMounted } from 'vue';
 const supabase = useSupabaseClient();

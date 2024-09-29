@@ -875,10 +875,12 @@ const errorHandler = (async function errorhandler(error, event) {
 });
 
 const _lazy_Q58rsb = () => Promise.resolve().then(function () { return login$1; });
+const _lazy_qktE2h = () => Promise.resolve().then(function () { return logout$1; });
 const _lazy_ckypvL = () => Promise.resolve().then(function () { return renderer$1; });
 
 const handlers = [
   { route: '/api/login', handler: _lazy_Q58rsb, lazy: true, middleware: false, method: undefined },
+  { route: '/api/logout', handler: _lazy_qktE2h, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_error', handler: _lazy_ckypvL, lazy: true, middleware: false, method: undefined },
   { route: '/**', handler: _lazy_ckypvL, lazy: true, middleware: false, method: undefined }
 ];
@@ -1098,6 +1100,16 @@ const login = defineEventHandler(async (event) => {
 const login$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   default: login
+});
+
+const logout = defineEventHandler((event) => {
+  setResponseHeader(event, "Set-Cookie", "user=; Path=/; Max-Age=0; HttpOnly;");
+  return { success: true, message: "\u767B\u51FA\u6210\u529F" };
+});
+
+const logout$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  default: logout
 });
 
 const Vue3 = version[0] === "3";

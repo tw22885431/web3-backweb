@@ -11,9 +11,8 @@ export default function () {
       ?.split('; ')
       .find(row => row.startsWith('user='));
 
-      console.log(userCookie);
 
-    if (!userCookie) {
+    if (!userCookie || userCookie===undefined) {
       // 如果找不到 cookie，則重定向到登錄頁面
       return router.push('/login'); // 根據您的登錄路由調整路徑
     }

@@ -127,7 +127,8 @@ const selectedCustomerName = computed(() => {
 
 // 添加頁面元數據
 definePageMeta({
-  layout: 'back-layout'
+  layout: 'back-layout',
+  middleware: 'auth',
 });
 </script>
 

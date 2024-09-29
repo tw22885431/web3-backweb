@@ -55,7 +55,8 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'back-layout'
+  layout: 'back-layout',
+  middleware: 'auth',
 });
 import { ref, onMounted } from 'vue';
 import { Chart } from 'chart.js';

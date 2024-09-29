@@ -6,6 +6,9 @@ declare module 'nitropack' {
     '/api/login': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/login').default>>>>
     }
+    '/api/logout': {
+      'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/logout').default>>>>
+    }
     '/__nuxt_error': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/.pnpm/nuxt@3.13.2_@parcel+watcher@2.4.1_@types+node@22.5.5_ioredis@5.4.1_magicast@0.3.5_rollup@4.22_clp3eky4fm43ippx3yn5oxruqm/node_modules/nuxt/dist/core/runtime/nitro/renderer').default>>>>
     }
