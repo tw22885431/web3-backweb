@@ -5,7 +5,6 @@ import { mkdirSync } from 'node:fs';
 import { parentPort, threadId } from 'node:worker_threads';
 import { defineEventHandler, handleCacheHeaders, splitCookiesString, isEvent, createEvent, fetchWithEvent, getRequestHeader, eventHandler, setHeaders, sendRedirect, proxyRequest, createError, setResponseHeader, send, getResponseStatus, setResponseStatus, setResponseHeaders, getRequestHeaders, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getRouterParam, getQuery as getQuery$1, readBody, getResponseStatusText } from 'file://D:/web/web3-backweb/node_modules/.pnpm/h3@1.12.0/node_modules/h3/dist/index.mjs';
 import bcrypt from 'file://D:/web/web3-backweb/node_modules/.pnpm/bcryptjs@2.4.3/node_modules/bcryptjs/index.js';
-import nodemailer from 'file://D:/web/web3-backweb/node_modules/.pnpm/nodemailer@6.9.15/node_modules/nodemailer/lib/nodemailer.js';
 import { getRequestDependencies, getPreloadLinks, getPrefetchLinks, createRenderer } from 'file://D:/web/web3-backweb/node_modules/.pnpm/vue-bundle-renderer@2.1.0/node_modules/vue-bundle-renderer/dist/runtime.mjs';
 import { stringify, uneval } from 'file://D:/web/web3-backweb/node_modules/.pnpm/devalue@5.0.0/node_modules/devalue/index.js';
 import destr from 'file://D:/web/web3-backweb/node_modules/.pnpm/destr@2.0.3/node_modules/destr/dist/index.mjs';
@@ -877,13 +876,13 @@ const errorHandler = (async function errorhandler(error, event) {
 
 const _lazy_Q58rsb = () => Promise.resolve().then(function () { return login$1; });
 const _lazy_qktE2h = () => Promise.resolve().then(function () { return logout$1; });
-const _lazy_3brM5o = () => Promise.resolve().then(function () { return sendEmail$1; });
+const _lazy_9ecBjI = () => Promise.resolve().then(function () { return sendEmailTemplate; });
 const _lazy_ckypvL = () => Promise.resolve().then(function () { return renderer$1; });
 
 const handlers = [
   { route: '/api/login', handler: _lazy_Q58rsb, lazy: true, middleware: false, method: undefined },
   { route: '/api/logout', handler: _lazy_qktE2h, lazy: true, middleware: false, method: undefined },
-  { route: '/api/send-email', handler: _lazy_3brM5o, lazy: true, middleware: false, method: undefined },
+  { route: '/api/send-email-template', handler: _lazy_9ecBjI, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_error', handler: _lazy_ckypvL, lazy: true, middleware: false, method: undefined },
   { route: '/**', handler: _lazy_ckypvL, lazy: true, middleware: false, method: undefined }
 ];
@@ -1115,37 +1114,8 @@ const logout$1 = /*#__PURE__*/Object.freeze({
   default: logout
 });
 
-const sendEmail = defineEventHandler(async (event) => {
-  const { to, subject, text } = await readBody(event);
-  const config = useRuntimeConfig();
-  const transporter = nodemailer.createTransport({
-    host: config.nodemailer.transport.host,
-    port: config.nodemailer.transport.port,
-    secure: config.nodemailer.transport.secure,
-    auth: {
-      user: config.nodemailer.transport.auth.user,
-      pass: config.nodemailer.transport.auth.pass
-    }
-  });
-  const mailOptions = {
-    from: config.nodemailer.transport.auth.user,
-    // Sender email from your config
-    to,
-    subject,
-    text
-  };
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    return { success: true, info };
-  } catch (error) {
-    console.error("Error sending email:", error);
-    return { success: false, error };
-  }
-});
-
-const sendEmail$1 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  default: sendEmail
+const sendEmailTemplate = /*#__PURE__*/Object.freeze({
+  __proto__: null
 });
 
 const Vue3 = version[0] === "3";

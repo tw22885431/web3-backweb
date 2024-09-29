@@ -98,7 +98,7 @@ async function submitReply() {
       .insert([{ question_id: questionId, reply_content: replyContent.value }]);
 
     if (error) {
-      alert('回复失败，请稍后再试。'); // 如果發生錯誤，顯示提示
+      alert('回复失败，请稍后再试'); // 如果發生錯誤，顯示提示
     } else {
       // 发送电子邮件
       const { success, error: emailError } = await $fetch('/api/send-email-template', {

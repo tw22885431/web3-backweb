@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
   const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail({
     to: [{ email: questionData.customer_email }], // 使用从数据库中获取的客户电子邮件
-    templateId: 1, // 用你的 Brevo 邮件模板 ID 替换
+    templateId: "OVf5_UcbtShNM5r5ug7mkhfMqAc8WVqHKAD1AlFYgpWTIqKu2FZqo76b", // 用你的 Brevo 邮件模板 ID 替换
     params: {
       customerName: questionData.customer_name, // 动态参数
       // 你可以在这里添加更多参数，比如问题内容等

@@ -42,6 +42,6 @@ export default defineNuxtConfig({
     },
   },
   publicRuntimeConfig: {
-    brevoApiKey: process.env.BREVO_API_KEY, // 将 Brevo API 密钥放入运行时配置
+    brevoApiKey: process.env.BREVO_API_KEY , // 将 Brevo API 密钥放入运行时配置
   },
 });
