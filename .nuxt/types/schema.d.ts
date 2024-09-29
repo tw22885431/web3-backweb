@@ -123,16 +123,16 @@ declare module 'nuxt/schema' {
 
    nodemailer: {
       transport: {
-         host: any,
+         host: string,
 
-         port: any,
+         port: string,
 
          secure: boolean,
 
          auth: {
-            user: any,
+            user: string,
 
-            pass: any,
+            pass: string,
          },
       },
    },

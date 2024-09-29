@@ -1,27 +1,30 @@
 import { useRequestEvent } from 'nuxt/app';
-import { useRouter } from 'vue-router';
 
 export default function () {
-  const event = useRequestEvent(); // 獲取請求事件
-  const router = useRouter(); // 使用 Vue Router 的 useRouter
+  const event = useRequestEvent(); // 获取请求事件
 
-  // 確保只有在服務器端檢查 cookie
+  // 确保只有在服务器端检查 cookie
   if (process.server) {
     const userCookie = event.req.headers?.cookie
       ?.split('; ')
       .find(row => row.startsWith('user='));
 
-
-    if (!userCookie || userCookie===undefined) {
-      // 如果找不到 cookie，則重定向到登錄頁面
-      return router.push('/login'); // 根據您的登錄路由調整路徑
+    // 检查 userCookie 是否存在
+    if (!userCookie) {
+      console.log('No user cookie found. Redirecting to login.');
+      // 如果找不到 cookie，则重定向到登录页面
+      event.res.writeHead(302, { Location: '/login' });
+      event.res.end(); // 结束响应
+      return; // 确保后面的代码不再执行
     }
 
-    // 可選地，解析 cookie 並將用戶信息附加到上下文
-    const user = JSON.parse(decodeURIComponent(userCookie.split('=')[1]));
-    if (user) {
-      // 如果需要，可以將用戶信息附加到上下文
-      // e.g. context.user = user;
+    // 尝试解析 cookie
+    try {
+      const user = JSON.parse(decodeURIComponent(userCookie.split('=')[1]));
+
+    } catch (error) {
+      console.error('Error parsing user cookie:', error);
+      // 处理解析错误
     }
-  } 
+  }
 }
