@@ -117,6 +117,10 @@
               </div>
             </div>
           </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" @click="confirmCategorySelection">完成</button>
+            <button type="button" class="btn btn-secondary" @click="closeCategorySelector">取消</button>
+          </div>
         </div>
       </div>
     </div>
@@ -160,7 +164,6 @@ definePageMeta({
   layout: 'back-layout'
 });
 import { ref, onMounted } from 'vue';
-
 
 const supabase = useSupabaseClient();
 
@@ -229,6 +232,11 @@ const closeCategorySelector = () => {
   selectedSubSubcategoryId.value = null;
 };
 
+// 確認選擇的類別
+const confirmCategorySelection = () => {
+  showCategorySelector.value = false; // 關閉選擇視窗
+};
+
 // 選擇大類別
 const selectMainCategory = (category) => {
   selectedMainCategoryId.value = category.id;
@@ -247,7 +255,6 @@ const selectSubcategory = (subcategory) => {
 // 選擇小類別
 const selectSubSubcategory = (subSubcategory) => {
   selectedSubSubcategoryId.value = subSubcategory.id;
-  showCategorySelector.value = false; // 關閉選擇視窗
 };
 
 // 顯示新增類別的模態框
@@ -285,7 +292,7 @@ const submitProductForm = async () => {
     gtin: gtin.value,
     description: description.value,
     specifications: specifications.value,
-    category_id: selectedSubcategoryId.value,
+    category_id: selectedSubSubcategoryId.value || selectedSubcategoryId.value,
   };
 
   const { data, error } = await supabase.from('products').insert([payload]);
@@ -319,11 +326,13 @@ const handleFileChange = (event, index) => {
 
 // 獲取選擇的類別字串
 const getSelectedCategories = () => {
-  const mainCategory = selectedMainCategoryId.value ? mainCategories.value.find(cat => cat.id === selectedMainCategoryId.value)?.name : '未選擇大類別';
-  const subCategory = selectedSubcategoryId.value ? subcategories.value.find(cat => cat.id === selectedSubcategoryId.value)?.name : '未選擇中類別';
-  const subSubCategory = selectedSubSubcategoryId.value ? subSubcategories.value.find(cat => cat.id === selectedSubSubcategoryId.value)?.name : '未選擇小類別';
-  
-  return `${mainCategory} > ${subCategory} > ${subSubCategory}`;
+  const mainCategory = selectedMainCategoryId.value ? mainCategories.value.find(cat => cat.id === selectedMainCategoryId.value)?.name : null;
+  const subCategory = selectedSubcategoryId.value ? subcategories.value.find(cat => cat.id === selectedSubcategoryId.value)?.name : null;
+  const subSubCategory = selectedSubSubcategoryId.value ? subSubcategories.value.find(cat => cat.id === selectedSubSubcategoryId.value)?.name : null;
+
+  const categories = [mainCategory, subCategory, subSubCategory].filter(Boolean);
+
+  return categories.length > 0 ? categories.join(' > ') : '';
 };
 </script>
 

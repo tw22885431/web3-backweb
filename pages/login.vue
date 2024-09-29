@@ -1,7 +1,7 @@
 <template>
   <main class="form-signin">
     <form @submit.prevent="backLogin">
-      <h1 class="h3 mb-3 fw-normal">鳥巢比特商店後台</h1>
+      <h3 class="h3 mb-3 fw-normal">鳥巢比特商店後台</h3>
       <div class="form-floating">
         <input type="text" v-model="username" class="form-control" id="floatingInput" required>
         <label for="floatingInput">帳號</label>
@@ -19,37 +19,47 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { SHA512 } from 'crypto-js'; // 引入 SHA-512
-
-useHead({
-  bodyAttrs: {
-    class: "text-center"
-  },
-});
-
-const supabase = useSupabaseClient();
-const router = useRouter();
 
 const username = ref('');
 const password = ref('');
 const errorMsg = ref('');
+const router = useRouter();
+const supabase = useSupabaseClient(); // 使用 Supabase 客戶端
 
 async function backLogin() {
-  const hashedPassword = SHA512(password.value).toString(); // 將密碼進行 SHA-512 雜湊
+  try {
+    // 查詢用戶資料
+    const { data: admin, error } = await supabase
+      .from('admin')
+      .select('*')
+      .eq('username', username.value)
+      .single();
 
-  const { data: admin, error } = await supabase
-    .from('admin')
-    .select('*')
-    .eq('username', username.value)
-    .eq('password', hashedPassword); // 使用雜湊後的密碼
+    if (error || !admin) {
+      errorMsg.value = '登入失敗: 沒有此帳號';
+      return;
+    }
 
-  if (error) {
-    errorMsg.value = '登入失敗: ' + error.message;
-  } else if (admin.length > 0) {
-    // 登入成功的處理
-    router.push('/dashboard'); // 導向儀表板或其他頁面
-  } else {
-    errorMsg.value = '登入失敗: 帳號或密碼錯誤';
+    // 將查詢結果發送到 API
+    const response = await $fetch('/api/login', {
+      method: 'POST',
+      body: {
+        username: admin.username,
+        encrypted_password: admin.encrypted_password,
+        input_password: password.value, // 將輸入的密碼發送到 API
+      },
+    });
+
+    if (response.success) {
+      // 設置 Cookie
+      document.cookie = `user=${JSON.stringify({ username: admin.username })}; path=/; max-age=${60 * 60 * 24 * 7};`;
+      router.push('/'); // 登入成功後導向首頁
+    } else {
+      errorMsg.value = response.error; // 顯示錯誤信息
+    }
+  } catch (error) {
+    console.error('Login API error:', error);
+    errorMsg.value = '伺服器錯誤，請稍後再試';
   }
 }
 </script>

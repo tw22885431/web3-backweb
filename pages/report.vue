@@ -17,9 +17,9 @@
         </thead>
         <tbody>
           <tr v-for="(report, index) in reports" :key="index">
-            <td>{{ report.customerName }}</td>
+            <td>{{ report.customer_name }}</td>
             <td>{{ report.question }}</td>
-            <td>{{ report.date }}</td>
+            <td>{{ new Date(report.date).toLocaleString() }}</td>
             <td>
               <button class="btn btn-primary btn-sm" @click="openModal(index)">回覆</button>
             </td>
@@ -39,11 +39,11 @@
           <div class="modal-body">
             <p><strong>客戶名稱：</strong> {{ selectedCustomerName }}</p>
             <p><strong>客戶問題：</strong> {{ selectedReportQuestion }}</p>
-            <textarea 
-              class="form-control" 
-              v-model="replyContent" 
-              rows="3" 
-              placeholder="輸入回覆內容" 
+            <textarea
+              class="form-control"
+              v-model="replyContent"
+              rows="3"
+              placeholder="輸入回覆內容"
               required
             ></textarea>
           </div>
@@ -58,15 +58,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
-const reports = ref([
-  { customerName: '張三', question: '這個產品的運送時間是多久？', date: '2024-09-18' },
-  { customerName: '李四', question: '是否可以退貨？', date: '2024-09-19' },
-]); // 模擬客戶問題列表
+const supabase = useSupabaseClient();
+const reports = ref([]);
 
 const selectedReportIndex = ref<number | null>(null);
 const replyContent = ref('');
+
+onMounted(async () => {
+  const { data, error } = await supabase
+    .from('customer_questions')
+    .select('*')
+    .order('date', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching questions:', error);
+  } else {
+    reports.value = data;
+  }
+});
 
 function openModal(index: number) {
   selectedReportIndex.value = index;
@@ -75,9 +86,23 @@ function openModal(index: number) {
   modal.show();
 }
 
-function submitReply() {
+async function submitReply() {
   if (selectedReportIndex.value !== null) {
-    alert(`回覆客戶 ${reports.value[selectedReportIndex.value].customerName}: ${replyContent.value}`);
+    const questionId = reports.value[selectedReportIndex.value].id;
+
+    // 保存回覆到資料庫
+    const { error } = await supabase
+      .from('replies')
+      .insert([{ question_id: questionId, reply_content: replyContent.value }]);
+
+    if (error) {
+      alert('回覆失敗，請稍後再試。');
+    } else {
+      // 發送電子郵件
+      await sendEmail(reports.value[selectedReportIndex.value]);
+      alert(`回覆客戶 ${reports.value[selectedReportIndex.value].customer_name}: ${replyContent.value}`);
+    }
+
     replyContent.value = '';
     selectedReportIndex.value = null; // 回覆後清除選擇
     const modal = bootstrap.Modal.getInstance(document.getElementById('replyModal'));
@@ -97,7 +122,7 @@ const selectedReportQuestion = computed(() => {
 
 // 計算選擇的客戶名稱
 const selectedCustomerName = computed(() => {
-  return selectedReportIndex.value !== null ? reports.value[selectedReportIndex.value].customerName : '';
+  return selectedReportIndex.value !== null ? reports.value[selectedReportIndex.value].customer_name : '';
 });
 
 // 添加頁面元數據
