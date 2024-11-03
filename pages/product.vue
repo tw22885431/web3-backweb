@@ -30,18 +30,19 @@
             </div>
           </div>
 
-          <div class="mb-3">
-            <label for="description" class="form-label">商品詳細說明</label>
-            <textarea class="form-control" id="description" v-model="description" rows="3" placeholder="輸入產品詳細說明" required></textarea>
+		  <div class="mb-3">
+		    <label for="description" class="form-label">商品詳細說明</label>
+              <ClientOnly>
+                <QuillEditor :options="editorOptions" v-model="description" />
+              </ClientOnly>
+              <small class="form-text text-muted">請至少輸入 100 字或上傳 1 張圖片。</small>
           </div>
-
           <h2 class="mt-4">商品規格</h2>
           <table class="table table-striped">
             <thead>
               <tr>
                 <th>規格名稱</th>
                 <th>價格</th>
-                <th>商品數量</th>
                 <th>規格圖片</th>
                 <th>操作</th>
               </tr>
@@ -53,9 +54,6 @@
                 </td>
                 <td>
                   <input type="number" class="form-control" v-model="spec.price" placeholder="輸入價格" required min="0">
-                </td>
-                <td>
-                  <input type="number" class="form-control" v-model="spec.quantity" placeholder="輸入商品數量" required min="1">
                 </td>
                 <td>
                   <input type="file" class="form-control" accept="image/*" @change="(event) => handleFileChange(event, index)">
@@ -88,9 +86,6 @@
                   <li class="list-group-item" v-for="category in mainCategories" :key="category.id" @click="selectMainCategory(category)">
                     <span :class="{'text-primary': selectedMainCategoryId === category.id}">{{ category.name }}</span>
                   </li>
-                  <li class="list-group-item">
-                    <button class="btn btn-primary w-100" @click="showAddCategoryModal('main')">新增大類別</button>
-                  </li>
                 </ul>
               </div>
               <div class="col-md-4" v-if="selectedMainCategoryId">
@@ -99,9 +94,6 @@
                   <li class="list-group-item" v-for="subcategory in subcategories" :key="subcategory.id" @click="selectSubcategory(subcategory)">
                     <span :class="{'text-primary': selectedSubcategoryId === subcategory.id}">{{ subcategory.name }}</span>
                   </li>
-                  <li class="list-group-item">
-                    <button class="btn btn-primary w-100" @click="showAddCategoryModal('sub')">新增中類別</button>
-                  </li>
                 </ul>
               </div>
               <div class="col-md-4" v-if="selectedSubcategoryId">
@@ -109,9 +101,6 @@
                 <ul class="list-group">
                   <li class="list-group-item" v-for="subSubcategory in subSubcategories" :key="subSubcategory.id" @click="selectSubSubcategory(subSubcategory)">
                     <span :class="{'text-primary': selectedSubSubcategoryId === subSubcategory.id}">{{ subSubcategory.name }}</span>
-                  </li>
-                  <li class="list-group-item">
-                    <button class="btn btn-primary w-100" @click="showAddCategoryModal('subSub')">新增小類別</button>
                   </li>
                 </ul>
               </div>
@@ -124,66 +113,45 @@
         </div>
       </div>
     </div>
-
-    <!-- 新增類別 Modal -->
-    <div v-if="isAddCategoryModalVisible" class="modal fade show" tabindex="-1" style="display: block;">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">新增類別</h5>
-            <button type="button" class="btn-close" @click="isAddCategoryModalVisible = false"></button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="submitCategoryForm">
-              <div class="mb-3">
-                <label for="categoryName" class="form-label">類別名稱</label>
-                <input type="text" class="form-control" id="categoryName" v-model="newCategoryName" placeholder="輸入類別名稱" required>
-              </div>
-              <div class="mb-3" v-if="categoryType === 'sub' || categoryType === 'subSub'">
-                <label for="parentCategory" class="form-label">父類別</label>
-                <select class="form-select" v-model="parentCategoryId" required>
-                  <option selected disabled>選擇父類別</option>
-                  <option v-for="category in (categoryType === 'sub' ? mainCategories : subcategories)" :key="category.id" :value="category.id">
-                    {{ category.name }}
-                  </option>
-                </select>
-              </div>
-              <button type="submit" class="btn btn-success">新增類別</button>
-              <button type="button" class="btn btn-secondary" @click="isAddCategoryModalVisible = false">取消</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
   </main>
 </template>
 
 <script setup>
-// 添加頁面元數據
 definePageMeta({
   layout: 'back-layout',
   middleware: 'auth',
 });
 import { ref, onMounted } from 'vue';
+import { QuillEditor } from '@vueup/vue-quill';
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
+
+const editorOptions = {
+  modules: {
+    toolbar: [
+      [{ header: [1, 2, false] }],
+      ['bold', 'italic', 'underline'],
+      ['image', 'code-block'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['clean']
+    ]
+  },
+  theme: 'snow'
+};
 
 const supabase = useSupabaseClient();
 
 const showAddProductForm = ref(false);
 const showCategorySelector = ref(false);
-const isAddCategoryModalVisible = ref(false);
 const productName = ref('');
 const gtin = ref('');
 const description = ref('');
-const specifications = ref([{ name: '', price: null, quantity: null }]);
+const specifications = ref([{ name: '', price: null }]);
 const mainCategories = ref([]);
 const subcategories = ref([]);
 const subSubcategories = ref([]);
 const selectedMainCategoryId = ref(null);
 const selectedSubcategoryId = ref(null);
 const selectedSubSubcategoryId = ref(null);
-const newCategoryName = ref('');
-const parentCategoryId = ref(null);
-const categoryType = ref('');
 
 // 獲取大類別
 const fetchMainCategories = async () => {
@@ -227,7 +195,6 @@ const openCategorySelector = () => {
 // 關閉類別選擇器
 const closeCategorySelector = () => {
   showCategorySelector.value = false;
-  // 清空選擇
   selectedMainCategoryId.value = null;
   selectedSubcategoryId.value = null;
   selectedSubSubcategoryId.value = null;
@@ -235,55 +202,27 @@ const closeCategorySelector = () => {
 
 // 確認選擇的類別
 const confirmCategorySelection = () => {
-  showCategorySelector.value = false; // 關閉選擇視窗
+  showCategorySelector.value = false;
 };
 
 // 選擇大類別
 const selectMainCategory = (category) => {
   selectedMainCategoryId.value = category.id;
   fetchSubcategories();
-  selectedSubcategoryId.value = null; // 重置中類別
-  selectedSubSubcategoryId.value = null; // 重置小類別
+  selectedSubcategoryId.value = null;
+  selectedSubSubcategoryId.value = null;
 };
 
 // 選擇中類別
 const selectSubcategory = (subcategory) => {
   selectedSubcategoryId.value = subcategory.id;
   fetchSubSubcategories();
-  selectedSubSubcategoryId.value = null; // 重置小類別
+  selectedSubSubcategoryId.value = null;
 };
 
 // 選擇小類別
 const selectSubSubcategory = (subSubcategory) => {
   selectedSubSubcategoryId.value = subSubcategory.id;
-};
-
-// 顯示新增類別的模態框
-const showAddCategoryModal = (type) => {
-  categoryType.value = type;
-  isAddCategoryModalVisible.value = true;
-};
-
-// 提交新增類別表單
-const submitCategoryForm = async () => {
-  const payload = {
-    name: newCategoryName.value,
-    parent_id: parentCategoryId.value || null,
-  };
-
-  const { data, error } = await supabase.from('categories').insert([payload]);
-  if (error) {
-    console.error('Error adding category:', error);
-  } else {
-    isAddCategoryModalVisible.value = false;
-    if (categoryType.value === 'main') {
-      fetchMainCategories();
-    } else if (categoryType.value === 'sub') {
-      fetchSubcategories();
-    } else if (categoryType.value === 'subSub') {
-      fetchSubSubcategories();
-    }
-  }
 };
 
 // 提交新增產品表單
@@ -311,7 +250,7 @@ onMounted(() => {
 
 // 新增規格
 const addSpecification = () => {
-  specifications.value.push({ name: '', price: null, quantity: null });
+  specifications.value.push({ name: '', price: null });
 };
 
 // 刪除規格
@@ -332,12 +271,24 @@ const getSelectedCategories = () => {
   const subSubCategory = selectedSubSubcategoryId.value ? subSubcategories.value.find(cat => cat.id === selectedSubSubcategoryId.value)?.name : null;
 
   const categories = [mainCategory, subCategory, subSubCategory].filter(Boolean);
-
   return categories.length > 0 ? categories.join(' > ') : '';
 };
 </script>
 
 <style scoped>
+.ql-editor {
+  min-height: 500px !important;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+.ql-toolbar {
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  margin-bottom: 10px;
+}
 .text-primary {
   color: blue; /* 可以根據需要更改顏色 */
 }
